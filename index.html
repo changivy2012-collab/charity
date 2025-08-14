@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Charity Project Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            color: white;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.2);
+            margin: 0 10px 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .project-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .project-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .project-card p {
+            margin-bottom: 10px;
+        }
+        
+        .project-detail {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .donation-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .donation-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .donation-option {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .donation-option:hover, .donation-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .project-plan {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .plan-section {
+            margin-bottom: 20px;
+        }
+        
+        .plan-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .promotion-material {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .social-post {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .strategy-tip {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateX(200%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(90deg, #28a745, #218838);
+        }
+        
+        .notification.error {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin: 0 0 10px 0;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Personalized Charity Project Creator</h1>
+            <p>Create Your Unique Charity Project Based on Your Interests</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="creator">Project Creator</div>
+            <div class="nav-tab" data-tab="projects">My Projects</div>
+            <div class="nav-tab" data-tab="donate">Donate</div>
+            <div class="nav-tab" data-tab="plan">Project Plan</div>
+            <div class="nav-tab" data-tab="promotion">Promotion Plan</div>
+        </div>
+        
+        <div class="tab-content">
+            <!-- 项目创建模块 -->
+            <div class="tab-pane active" id="creator-tab">
+                <h2>Create Your Personalized Charity Project</h2>
+                <form id="project-form">
+                    <div class="form-group">
+                        <label for="project-name">Project Name</label>
+                        <input type="text" id="project-name" placeholder="Enter a name for your charity project">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interests">Your Interests & Hobbies</label>
+                        <textarea id="interests" rows="4" placeholder="List your interests, hobbies, and skills (e.g., music, sports, technology, art, cooking, etc.)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cause">Preferred Cause Area</label>
+                        <select id="cause">
+                            <option value="">Select a cause area</option>
+                            <option value="education">Education</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="environment">Environment</option>
+                            <option value="animals">Animal Welfare</option>
+                            <option value="poverty">Poverty Alleviation</option>
+                            <option value="arts">Arts & Culture</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target-audience">Target Audience</label>
+                        <select id="target-audience">
+                            <option value="">Select target audience</option>
+                            <option value="children">Children</option>
+                            <option value="youth">Youth</option>
+                    <option value="elderly">Elderly</option>
+                    <option value="disabled">People with Disabilities</option>
+                    <option value="general">General Public</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="project-description">Project Description</label>
+                <textarea id="project-description" rows="6" placeholder="Describe how your interests will be integrated into this charity project"></textarea>
+            </div>
+            
+            <button type="button" class="btn btn-primary" onclick="createProject()">Create Project</button>
+        </form>
+    </div>
+    
+    <!-- 我的项目模块 -->
+    <div class="tab-pane" id="projects-tab">
+        <h2>My Charity Projects</h2>
+        <div id="projects-list">
+            <!-- 项目卡片将通过JavaScript动态生成 -->
+            <p id="no-projects-message">You haven't created any projects yet. Start by creating your first personalized charity project!</p>
+        </div>
+    </div>
+    
+    <!-- 捐赠模块 -->
+    <div class="tab-pane" id="donate-tab">
+        <h2>Support a Charity Project</h2>
+        <div id="donation-projects">
+            <!-- 捐赠项目将通过JavaScript动态生成 -->
+            <p>Select a project to donate to from the list below:</p>
+        </div>
+    </div>
+    
+    <!-- 项目计划模块 -->
+    <div class="tab-pane" id="plan-tab">
+        <h2>Detailed Project Plan</h2>
+        <div id="project-plan-content">
+            <p>Create a project first to generate a detailed plan.</p>
+        </div>
+    </div>
+    
+    <!-- 宣传计划模块 -->
+    <div class="tab-pane" id="promotion-tab">
+        <h2>Promotion Plan Generator</h2>
+        <div id="promotion-plan-content">
+            <p>Create a project first to generate a promotion plan.</p>
+        </div>
+    </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+    // 项目数据
+    let projects = [];
+    let currentProject = null;
+    
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProjects();
+        renderProjects();
+        renderDonationProjects();
+        
+        // 设置标签页切换
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+    });
+    
+    // 标签页切换
+    function switchTab(tabId) {
+        // 更新标签页状态
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+        
+        // 显示对应内容
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+    }
+    
+    // 创建项目
+    function createProject() {
+        const projectName = document.getElementById('project-name').value;
+        const interests = document.getElementById('interests').value;
+        const cause = document.getElementById('cause').value;
+        const targetAudience = document.getElementById('target-audience').value;
+        const projectDescription = document.getElementById('project-description').value;
+        
+        if (!projectName || !interests || !cause || !targetAudience || !projectDescription) {
+            showNotification('Please fill in all fields', 'error');
+            return;
+        }
+        
+        const project = {
+            id: Date.now(),
+            name: projectName,
+            interests: interests,
+            cause: cause,
+            targetAudience: targetAudience,
+            description: projectDescription,
+            createdAt: new Date(),
+            donations: 0
+        };
+        
+        projects.push(project);
+        saveProjects();
+        renderProjects();
+        renderDonationProjects();
+        
+        // 清空表单
+        document.getElementById('project-form').reset();
+        
+        showNotification('Project created successfully!', 'success');
+        switchTab('projects');
+    }
+    
+    // 渲染项目列表
+    function renderProjects() {
+        const projectsList = document.getElementById('projects-list');
+        
+        if (projects.length === 0) {
+            document.getElementById('no-projects-message').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('no-projects-message').style.display = 'none';
+        
+        projectsList.innerHTML = '';
+        
+        projects.forEach(project => {
+            const projectCard = document.createElement('div');
+            projectCard.className = 'project-card';
+            projectCard.innerHTML = `
+                <h3>${project.name}</h3>
+                <p><strong>Interests:</strong> ${project.interests}</p>
+                <p><strong>Cause:</strong> ${project.cause}</p>
+                <p><strong>Target Audience:</strong> ${project.targetAudience}</p>
+                <p><strong>Description:</strong> ${project.description}</p>
+                <button class="btn btn-primary" onclick="viewProjectPlan(${project.id})">View Detailed Plan</button>
+                <button class="btn btn-primary" onclick="donateToProject(${project.id})" style="margin-left: 10px;">Donate</button>
+            `;
+            projectsList.appendChild(projectCard);
+        });
+    }
+    
+    // 渲染捐赠项目
+    function renderDonationProjects() {
+        const donationProjects = document.getElementById('donation-projects');
+        
+        if (projects.length === 0) {
+            donationProjects.innerHTML = '<p>No projects available for donation yet.</p>';
+            return;
+        }
+        
+        donationProjects.innerHTML = '<p>Select a project to donate to from the list below:</p>';
+        
+        projects.forEach(project => {
+            const projectCard = document.createElement('div');
+            projectCard.className = 'project-card';
+            projectCard.innerHTML = `
+                <h3>${project.name}</h3>
+                <p><strong>Cause:</strong> ${project.cause}</p>
+                <p><strong>Description:</strong> ${project.description.substring(0, 100)}...</p>
+                <button class="btn btn-primary" onclick="openDonationForm(${project.id})">Donate to this Project</button>
+            `;
+            donationProjects.appendChild(projectCard);
+        });
+    }
+    
+    // 查看项目计划
+    function viewProjectPlan(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        currentProject = project;
+        const planContent = document.getElementById('project-plan-content');
+        
+        // 生成详细的项目计划
+        const plan = generateProjectPlan(project);
+        
+        planContent.innerHTML = `
+            <div class="project-detail">
+                <h3>${project.name} - Detailed Plan</h3>
+                <div class="project-plan">
+                    ${plan}
+                </div>
+                <button class="btn btn-primary" onclick="downloadPlan(${project.id})">Download Plan as PDF</button>
+                <button class="btn btn-primary" onclick="donateToProject(${project.id})" style="margin-left: 10px;">Donate to this Project</button>
+                <button class="btn btn-primary" onclick="generatePromotionPlan(${project.id})" style="margin-left: 10px;">Generate Promotion Plan</button>
+            </div>
+        `;
+        
+        switchTab('plan');
+    }
+    
+    // 生成宣传计划
+    function generatePromotionPlan(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        currentProject = project;
+        const promotionContent = document.getElementById('promotion-plan-content');
+        
+        // 生成宣传计划
+        const promotionPlan = generateProjectPromotionPlan(project);
+        
+        promotionContent.innerHTML = `
+            <div class="project-detail">
+                <h3>${project.name} - Promotion Plan</h3>
+                <div class="project-plan">
+                    ${promotionPlan}
+                </div>
+                <button class="btn btn-primary" onclick="downloadPromotionPlan(${project.id})">Download Promotion Plan as PDF</button>
+            </div>
+        `;
+        
+        switchTab('promotion');
+    }
+    
+    // 生成宣传计划
+    function generatePromotionPlan(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        currentProject = project;
+        const promotionContent = document.getElementById('promotion-plan-content');
+        
+        // 生成宣传计划
+        const promotionPlan = generateProjectPromotionPlan(project);
+        
+        promotionContent.innerHTML = `
+            <div class="project-detail">
+                <h3>${project.name} - Promotion Plan</h3>
+                <div class="project-plan">
+                    ${promotionPlan}
+                </div>
+                <button class="btn btn-primary" onclick="downloadPromotionPlan(${project.id})">Download Promotion Plan as PDF</button>
+            </div>
+        `;
+        
+        switchTab('promotion');
+    }
+    
+    // 生成项目计划
+    function generateProjectPlan(project) {
+        // 根据用户的兴趣和选择的领域生成定制化的项目计划
+        let plan = `
+            <div class="plan-section">
+                <h4>🎯 Project Overview</h4>
+                <p><strong>Project Name:</strong> ${project.name}</p>
+                <p><strong>Focus Area:</strong> ${project.cause}</p>
+                <p><strong>Target Audience:</strong> ${project.targetAudience}</p>
+                <p><strong>Integration of Personal Interests:</strong> ${project.description}</p>
+                <p><strong>Project Vision:</strong> Creating lasting positive impact by combining personal passion with social responsibility</p>
+                <p><strong>Mission Statement:</strong> To leverage individual talents and interests to address ${project.cause} challenges while empowering the ${project.targetAudience} community</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>🎯 Strategic Objectives</h4>
+                <p><strong>Primary Goals:</strong></p>
+                <p>1. <strong>Awareness & Education:</strong> Raise awareness about ${project.cause} through engaging activities that incorporate the creator's interests in ${project.interests}</p>
+                <p>2. <strong>Direct Impact:</strong> Provide meaningful, measurable support to the ${project.targetAudience} community with specific outcomes</p>
+                <p>3. <strong>Sustainability:</strong> Create a replicable model that can be adopted by others with similar interests and scaled for broader impact</p>
+                <p>4. <strong>Community Building:</strong> Foster a network of supporters, volunteers, and beneficiaries for long-term engagement</p>
+                <p>5. <strong>Innovation:</strong> Demonstrate creative approaches to social challenges through personal interest integration</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>📊 Detailed Impact Metrics & KPIs</h4>
+                <p><strong>Quantitative Measures:</strong></p>
+                <p>• Direct beneficiaries served: Target 100+ individuals in first 6 months</p>
+                <p>• Funds raised: Goal of $10,000+ through various activities</p>
+                <p>• Volunteer engagement: Recruit 25+ active volunteers</p>
+                <p>• Social media reach: 5,000+ people engaged across platforms</p>
+                <p>• Partnership development: Establish 5+ strategic partnerships</p>
+                <p><strong>Qualitative Measures:</strong></p>
+                <p>• Beneficiary satisfaction surveys (target 90%+ positive feedback)</p>
+                <p>• Community awareness assessment</p>
+                <p>• Volunteer retention and satisfaction</p>
+                <p>• Media coverage and public recognition</p>
+                <p>• Long-term behavior change in target audience</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>🎯 Target Audience Analysis</h4>
+                <p><strong>Primary Beneficiaries (${project.targetAudience}):</strong></p>
+                <p>• Demographics: Age range, location, socioeconomic status</p>
+                <p>• Specific needs and challenges related to ${project.cause}</p>
+                <p>• Current resources and gaps in services</p>
+                <p>• Preferred communication channels and engagement methods</p>
+                <p><strong>Secondary Stakeholders:</strong></p>
+                <p>• Donors and supporters interested in ${project.cause}</p>
+                <p>• Volunteers with skills in ${project.interests}</p>
+                <p>• Partner organizations and community leaders</p>
+                <p>• Local businesses and potential sponsors</p>
+            </div>
+        `;
+        
+        // 根据兴趣和领域添加具体活动
+        if (project.interests.toLowerCase().includes('music')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Music-Based Activities</h4>
+                    <p>• Organize benefit concerts to raise funds and awareness</p>
+                    <p>• Create music workshops for the target audience</p>
+                    <p>• Record and distribute inspirational songs related to the cause</p>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('art') || project.interests.toLowerCase().includes('painting')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Art-Based Activities</h4>
+                    <p>• Host art exhibitions with proceeds supporting the cause</p>
+                    <p>• Conduct art therapy sessions for the target audience</p>
+                    <p>• Create murals in community spaces to raise awareness</p>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('sports') || project.interests.toLowerCase().includes('athletic')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Sports-Based Activities</h4>
+                    <p>• Organize charity runs, walks, or tournaments</p>
+                    <p>• Provide sports equipment and training to the target audience</p>
+                    <p>• Create sports mentorship programs</p>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('technology') || project.interests.toLowerCase().includes('coding')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Technology-Based Activities</h4>
+                    <p>• Develop apps or websites to support the cause</p>
+                    <p>• Provide technology training to the target audience</p>
+                    <p>• Create digital campaigns to raise awareness</p>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('cooking') || project.interests.toLowerCase().includes('food')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Food-Based Activities</h4>
+                    <p>• Organize charity cooking events and food sales</p>
+                    <p>• Provide cooking classes to the target audience</p>
+                    <p>• Create community gardens or food distribution programs</p>
+                </div>
+            `;
+        }
+        
+        // 添加通用计划部分
+        plan += `
+            <div class="plan-section">
+                <h4>📅 Detailed Implementation Timeline</h4>
+                <p><strong>Phase 1: Foundation (Month 1-2)</strong></p>
+                <p>• Week 1-2: Comprehensive needs assessment and stakeholder mapping</p>
+                <p>• Week 3-4: Team recruitment and volunteer orientation</p>
+                <p>• Week 5-6: Partnership development and resource mobilization</p>
+                <p>• Week 7-8: Program design finalization and pilot testing</p>
+                
+                <p><strong>Phase 2: Launch (Month 3-4)</strong></p>
+                <p>• Week 9-10: Soft launch with limited participants for feedback</p>
+                <p>• Week 11-12: Full program launch and marketing campaign</p>
+                <p>• Week 13-14: First major event/activity implementation</p>
+                <p>• Week 15-16: Initial impact assessment and program adjustments</p>
+                
+                <p><strong>Phase 3: Growth (Month 5-8)</strong></p>
+                <p>• Month 5: Scale up activities and expand participant base</p>
+                <p>• Month 6: Mid-program evaluation and strategy refinement</p>
+                <p>• Month 7: Major fundraising event and community showcase</p>
+                <p>• Month 8: Partnership expansion and sustainability planning</p>
+                
+                <p><strong>Phase 4: Evaluation & Sustainability (Month 9-12)</strong></p>
+                <p>• Month 9: Comprehensive impact evaluation</p>
+                <p>• Month 10: Documentation and best practices development</p>
+                <p>• Month 11: Transition planning and handover preparation</p>
+                <p>• Month 12: Final reporting and future planning</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>💰 Comprehensive Budget Breakdown</h4>
+                <p><strong>Total Project Budget: $15,000</strong></p>
+                
+                <p><strong>Program Implementation (60% - $9,000):</strong></p>
+                <p>• Materials and supplies: $4,500</p>
+                <p>• Equipment and technology: $2,500</p>
+                <p>• Venue rentals and utilities: $1,500</p>
+                <p>• Transportation and logistics: $500</p>
+                
+                <p><strong>Human Resources (25% - $3,750):</strong></p>
+                <p>• Part-time coordinator stipend: $2,000</p>
+                <p>• Volunteer training and recognition: $1,000</p>
+                <p>• Expert consultants and speakers: $750</p>
+                
+                <p><strong>Marketing & Outreach (10% - $1,500):</strong></p>
+                <p>• Digital marketing and social media: $600</p>
+                <p>• Print materials and signage: $400</p>
+                <p>• Event promotion and media: $500</p>
+                
+                <p><strong>Administrative Costs (5% - $750):</strong></p>
+                <p>• Insurance and legal compliance: $300</p>
+                <p>• Financial management and reporting: $250</p>
+                <p>• Contingency fund: $200</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>🎯 Risk Management & Mitigation</h4>
+                <p><strong>Identified Risks:</strong></p>
+                <p>• <strong>Funding shortfall:</strong> Diversify funding sources, apply for grants, organize multiple fundraising events</p>
+                <p>• <strong>Low volunteer engagement:</strong> Implement recognition programs, provide meaningful roles, regular appreciation events</p>
+                <p>• <strong>Weather/external disruptions:</strong> Develop backup plans, virtual alternatives, flexible scheduling</p>
+                <p>• <strong>Regulatory compliance:</strong> Early consultation with legal experts, proper documentation, insurance coverage</p>
+                <p>• <strong>Technology failures:</strong> Backup systems, technical support partnerships, manual alternatives</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>🤝 Partnership & Collaboration Strategy</h4>
+                <p><strong>Strategic Partners:</strong></p>
+                <p>• Local nonprofits working in ${project.cause}</p>
+                <p>• Community centers and venues</p>
+                <p>• Educational institutions and schools</p>
+                <p>• Local businesses and corporate sponsors</p>
+                <p>• Media outlets and influencers</p>
+                <p>• Government agencies and officials</p>
+                
+                <p><strong>Collaboration Benefits:</strong></p>
+                <p>• Resource sharing and cost reduction</p>
+                <p>• Expanded reach and credibility</p>
+                <p>• Knowledge exchange and best practices</p>
+                <p>• Sustainable long-term impact</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>📈 Success Metrics & Evaluation Framework</h4>
+                <p><strong>Short-term Indicators (1-3 months):</strong></p>
+                <p>• Number of people directly served</p>
+                <p>• Volunteer recruitment and retention rates</p>
+                <p>• Social media engagement and reach</p>
+                <p>• Initial funds raised for the cause</p>
+                
+                <p><strong>Medium-term Outcomes (3-6 months):</strong></p>
+                <p>• Awareness level increase in the community</p>
+                <p>• Partnership agreements established</p>
+                <p>• Program participation and completion rates</p>
+                <p>• Media coverage and public recognition</p>
+                
+                <p><strong>Long-term Impact (6-12 months):</strong></p>
+                <p>• Sustained behavior change in beneficiaries</p>
+                <p>• Community capacity building achievements</p>
+                <p>• Program replication by other organizations</p>
+                <p>• Policy influence and systemic change</p>
+            </div>
+        `;
+        
+        return plan;
+    }
+    
+    // 生成项目宣传计划
+    function generateProjectPromotionPlan(project) {
+        // 根据用户的兴趣和选择的领域生成定制化的宣传计划
+        let plan = `
+            <div class="plan-section">
+                <h4>📢 Comprehensive Promotion Overview</h4>
+                <p><strong>Project Name:</strong> ${project.name}</p>
+                <p><strong>Focus Area:</strong> ${project.cause}</p>
+                <p><strong>Target Audience:</strong> ${project.targetAudience}</p>
+                <p><strong>Personal Interests Integrated:</strong> ${project.interests}</p>
+                <p><strong>Promotion Goal:</strong> Achieve 10,000+ people reached, 500+ active supporters, and $5,000+ raised through promotional activities</p>
+                <p><strong>Campaign Duration:</strong> 12 weeks leading up to and during project implementation</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>🎯 Strategic Messaging Framework</h4>
+                <p><strong>Core Message:</strong> "Passion Meets Purpose - Where ${project.interests} Creates Change for ${project.cause}"</p>
+                
+                <p><strong>Key Messages:</strong></p>
+                <p>1. <strong>Innovation:</strong> "Raising awareness about ${project.cause} through innovative, engaging activities that break traditional charity molds"</p>
+                <p>2. <strong>Impact:</strong> "Making a measurable, meaningful difference in the ${project.targetAudience} community through targeted interventions"</p>
+                <p>3. <strong>Authenticity:</strong> "Demonstrating how personal passions and genuine interests can drive sustainable social change"</p>
+                <p>4. <strong>Community:</strong> "Building a movement where everyone can contribute their unique talents to address ${project.cause}"</p>
+                <p>5. <strong>Transparency:</strong> "Providing clear, honest updates on progress, challenges, and impact to build trust with supporters"</p>
+                
+                <p><strong>Emotional Appeals:</strong></p>
+                <p>• Hope: "Together, we can create a brighter future for ${project.targetAudience}"</p>
+                <p>• Empowerment: "Your support directly enables life-changing opportunities"</p>
+                <p>• Belonging: "Join a community of changemakers who share your values"</p>
+                <p>• Pride: "Be part of an innovative solution that others will want to replicate"</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>👥 Detailed Audience Segmentation</h4>
+                <p><strong>Primary Audiences:</strong></p>
+                
+                <p><strong>1. Personal Network (30% of outreach):</strong></p>
+                <p>• Family, friends, colleagues, and acquaintances</p>
+                <p>• People who share interest in ${project.interests}</p>
+                <p>• Previous supporters of similar causes</p>
+                <p>• Messaging: Personal stories, direct asks, behind-the-scenes content</p>
+                
+                <p><strong>2. ${project.cause} Community (25% of outreach):</strong></p>
+                <p>• Existing supporters of ${project.cause} organizations</p>
+                <p>• Professionals working in related fields</p>
+                <p>• Advocacy groups and activists</p>
+                <p>• Messaging: Impact data, collaboration opportunities, expert insights</p>
+                
+                <p><strong>3. ${project.interests} Enthusiasts (25% of outreach):</strong></p>
+                <p>• Communities centered around ${project.interests}</p>
+                <p>• Clubs, groups, and online forums</p>
+                <p>• Influencers and content creators in the space</p>
+                <p>• Messaging: Creative integration, skill-sharing, unique approach</p>
+                
+                <p><strong>4. Local Community (20% of outreach):</strong></p>
+                <p>• Neighbors, local businesses, community leaders</p>
+                <p>• Local media and bloggers</p>
+                <p>• Municipal organizations and civic groups</p>
+                <p>• Messaging: Local impact, community pride, partnership opportunities</p>
+            </div>
+        `;
+        
+        // 根据兴趣添加宣传材料
+        if (project.interests.toLowerCase().includes('music')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Music-Based Promotion Materials</h4>
+                    <div class="promotion-material">
+                        <h5>Press Release Sample</h5>
+                        <p>"Local Musician Launches Charity Project to Support ${project.cause}"</p>
+                        <p>Event Details: Benefit Concert for ${project.name}</p>
+                    </div>
+                    <div class="social-post">
+                        <h5>Social Media Post</h5>
+                        <p>🎵 Join me for a night of music with a purpose! All proceeds from my concert will support ${project.name}, helping ${project.targetAudience} in our community. Let's make a difference together! #CharityConcert #${project.cause}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('art') || project.interests.toLowerCase().includes('painting')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Art-Based Promotion Materials</h4>
+                    <div class="promotion-material">
+                        <h5>Press Release Sample</h5>
+                        <p>"Artist Exhibition to Raise Funds for ${project.cause}"</p>
+                        <p>Showcasing local talent while supporting a worthy cause</p>
+                    </div>
+                    <div class="social-post">
+                        <h5>Social Media Post</h5>
+                        <p>🎨 Art meets activism! My exhibition "${project.name}" combines creativity with compassion. Every piece sold supports ${project.cause} initiatives for ${project.targetAudience}. Visit the gallery and be part of the change! #ArtForACause #${project.cause}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('sports') || project.interests.toLowerCase().includes('athletic')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Sports-Based Promotion Materials</h4>
+                    <div class="promotion-material">
+                        <h5>Press Release Sample</h5>
+                        <p>"Charity Run/Walk to Support ${project.cause}"</p>
+                        <p>Community event combines fitness with fundraising</p>
+                    </div>
+                    <div class="social-post">
+                        <h5>Social Media Post</h5>
+                        <p>🏃‍♂️ Ready to run for a reason? Join the "${project.name}" charity run/walk! Lace up your sneakers and help us support ${project.cause} for ${project.targetAudience}. Every step makes a difference! #CharityRun #${project.cause}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('technology') || project.interests.toLowerCase().includes('coding')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Technology-Based Promotion Materials</h4>
+                    <div class="promotion-material">
+                        <h5>Press Release Sample</h5>
+                        <p>"Tech Innovation Meets Social Impact: ${project.name} Launch"</p>
+                        <p>Developer creates app to support ${project.cause} initiatives</p>
+                    </div>
+                    <div class="social-post">
+                        <h5>Social Media Post</h5>
+                        <p>💻 Tech for good! My new app "${project.name}" harnesses the power of technology to support ${project.cause} for ${project.targetAudience}. Download now and be part of the solution! #TechForGood #${project.cause}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (project.interests.toLowerCase().includes('cooking') || project.interests.toLowerCase().includes('food')) {
+            plan += `
+                <div class="plan-section">
+                    <h4>Food-Based Promotion Materials</h4>
+                    <div class="promotion-material">
+                        <h5>Press Release Sample</h5>
+                        <p>"Chef's Charity Dinner to Benefit ${project.cause}"</p>
+                        <p>Culinary event raises funds for ${project.targetAudience} community</p>
+                    </div>
+                    <div class="social-post">
+                        <h5>Social Media Post</h5>
+                        <p>🍽️ Good food, great cause! Join me for an unforgettable charity dinner supporting ${project.name}. Delicious cuisine meets social impact - your taste buds will thank you and so will the ${project.targetAudience} community! #CharityDinner #${project.cause}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 添加通用推广策略
+        plan += `
+            <div class="plan-section">
+                <h4>📱 Multi-Channel Promotion Strategy</h4>
+                
+                <div class="strategy-tip">
+                    <h5>🌐 Digital Marketing (40% of effort)</h5>
+                    <p><strong>Social Media Platforms:</strong></p>
+                    <p>• <strong>Instagram:</strong> Visual storytelling, behind-the-scenes content, Stories, Reels showcasing ${project.interests} integration</p>
+                    <p>• <strong>Facebook:</strong> Event creation, community building, detailed posts, live streaming of activities</p>
+                    <p>• <strong>Twitter:</strong> Real-time updates, hashtag campaigns, engagement with ${project.cause} community</p>
+                    <p>• <strong>LinkedIn:</strong> Professional networking, partnership outreach, thought leadership content</p>
+                    <p>• <strong>TikTok:</strong> Creative short videos demonstrating ${project.interests} for ${project.cause}</p>
+                    <p>• <strong>YouTube:</strong> Longer-form content, tutorials, impact documentaries</p>
+                    
+                    <p><strong>Content Strategy:</strong></p>
+                    <p>• Post 3-5 times per week across platforms</p>
+                    <p>• Use branded hashtags: #${project.name.replace(/\s+/g, '')} #${project.interests.split(',')[0].trim()}For${project.cause.charAt(0).toUpperCase() + project.cause.slice(1)}</p>
+                    <p>• Share user-generated content and testimonials</p>
+                    <p>• Create shareable infographics about ${project.cause}</p>
+                    <p>• Host live Q&A sessions and virtual events</p>
+                </div>
+                
+                <div class="strategy-tip">
+                    <h5>📧 Email Marketing & Direct Outreach (25% of effort)</h5>
+                    <p><strong>Email Campaigns:</strong></p>
+                    <p>• Welcome series for new subscribers (3-part series)</p>
+                    <p>• Weekly project updates with impact stories</p>
+                    <p>• Personalized asks to different donor segments</p>
+                    <p>• Event invitations and reminders</p>
+                    <p>• Thank you and impact reports post-donation</p>
+                    
+                    <p><strong>List Building:</strong></p>
+                    <p>• Lead magnets: Free guides related to ${project.interests} and ${project.cause}</p>
+                    <p>• Contest entries and giveaways</p>
+                    <p>• Event registrations and volunteer sign-ups</p>
+                    <p>• Partner organization cross-promotion</p>
+                </div>
+                
+                <div class="strategy-tip">
+                    <h5>🤝 Community & Partnership Outreach (20% of effort)</h5>
+                    <p><strong>Local Partnerships:</strong></p>
+                    <p>• Collaborate with ${project.interests} clubs and organizations</p>
+                    <p>• Partner with local businesses for sponsorship and cross-promotion</p>
+                    <p>• Engage with existing ${project.cause} nonprofits for joint initiatives</p>
+                    <p>• Connect with community centers and venues for events</p>
+                    
+                    <p><strong>Influencer & Advocate Engagement:</strong></p>
+                    <p>• Identify micro-influencers in ${project.interests} and ${project.cause} spaces</p>
+                    <p>• Reach out to local celebrities and public figures</p>
+                    <p>• Engage with advocacy groups and thought leaders</p>
+                    <p>• Create ambassador program for key supporters</p>
+                </div>
+                
+                <div class="strategy-tip">
+                    <h5>📺 Traditional Media & PR (15% of effort)</h5>
+                    <p><strong>Media Outreach:</strong></p>
+                    <p>• Press releases to local newspapers, radio, and TV stations</p>
+                    <p>• Pitch unique angle: ${project.interests} meets ${project.cause}</p>
+                    <p>• Offer expert commentary on related issues</p>
+                    <p>• Submit to community calendars and event listings</p>
+                    
+                    <p><strong>Content Creation:</strong></p>
+                    <p>• Professional photos and videos of activities</p>
+                    <p>• Written testimonials and case studies</p>
+                    <p>• Infographics and data visualizations</p>
+                    <p>• Branded materials and merchandise</p>
+                </div>
+            </div>
+            
+            <div class="plan-section">
+                <h4>📅 12-Week Promotional Timeline</h4>
+                
+                <p><strong>Weeks 1-2: Foundation & Launch</strong></p>
+                <p>• Set up all social media accounts and branding</p>
+                <p>• Create content calendar and initial content batch</p>
+                <p>• Launch website and donation platform</p>
+                <p>• Send announcement emails to personal network</p>
+                <p>• Begin reaching out to potential partners</p>
+                
+                <p><strong>Weeks 3-4: Awareness Building</strong></p>
+                <p>• Daily social media posting begins</p>
+                <p>• First press release and media outreach</p>
+                <p>• Host virtual launch event</p>
+                <p>• Begin influencer outreach</p>
+                <p>• Create and share first impact story</p>
+                
+                <p><strong>Weeks 5-6: Community Engagement</strong></p>
+                <p>• Partner announcements and cross-promotion</p>
+                <p>• First major fundraising push</p>
+                <p>• Host ${project.interests}-themed promotional event</p>
+                <p>• Launch ambassador program</p>
+                <p>• Increase posting frequency</p>
+                
+                <p><strong>Weeks 7-8: Momentum Building</strong></p>
+                <p>• Mid-campaign evaluation and strategy adjustment</p>
+                <p>• Major media interviews and features</p>
+                <p>• Volunteer recruitment drive</p>
+                <p>• Corporate sponsorship outreach</p>
+                <p>• User-generated content campaign</p>
+                
+                <p><strong>Weeks 9-10: Peak Promotion</strong></p>
+                <p>• Major event or milestone celebration</p>
+                <p>• Intensive social media campaign</p>
+                <p>• Final major fundraising push</p>
+                <p>• Media blitz and interviews</p>
+                <p>• Community challenge or contest</p>
+                
+                <p><strong>Weeks 11-12: Sustaining & Transition</strong></p>
+                <p>• Thank you campaign for supporters</p>
+                <p>• Impact reporting and transparency</p>
+                <p>• Planning for ongoing engagement</p>
+                <p>• Documentation of lessons learned</p>
+                <p>• Transition to program implementation phase</p>
+            </div>
+            
+            <div class="plan-section">
+                <h4>📊 Comprehensive Success Metrics</h4>
+                
+                <p><strong>Reach & Awareness Metrics:</strong></p>
+                <p>• Total people reached across all channels: Target 10,000+</p>
+                <p>• Social media followers gained: Target 1,000+</p>
+                <p>• Website unique visitors: Target 2,500+</p>
+                <p>• Email list growth: Target 500+ subscribers</p>
+                <p>• Media mentions and coverage: Target 10+ articles/features</p>
+                
+                <p><strong>Engagement Metrics:</strong></p>
+                <p>• Social media engagement rate: Target 5%+</p>
+                <p>• Email open rate: Target 25%+</p>
+                <p>• Email click-through rate: Target 5%+</p>
+                <p>• Event attendance: Target 100+ people per event</p>
+                <p>• User-generated content pieces: Target 50+</p>
+                
+                <p><strong>Conversion Metrics:</strong></p>
+                <p>• Total funds raised through promotion: Target $5,000+</p>
+                <p>• Number of donors acquired: Target 100+</p>
+                <p>• Volunteer sign-ups: Target 25+</p>
+                <p>• Partnership agreements: Target 5+</p>
+                <p>• Conversion rate (visitors to donors): Target 4%+</p>
+                
+                <p><strong>Quality Metrics:</strong></p>
+                <p>• Donor retention rate: Target 60%+</p>
+                <p>• Average donation amount: Target $50+</p>
+                <p>• Net Promoter Score: Target 8+</p>
+                <p>• Brand sentiment analysis: Target 80%+ positive</p>
+                <p>• Long-term supporter engagement: Target 40%+ ongoing</p>
+            </div>
+        `;
+        
+        return plan;
+    }
+    
+    // 捐赠到项目
+    function donateToProject(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        openDonationForm(projectId);
+    }
+    
+    // 打开捐赠表单
+    function openDonationForm(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        currentProject = project;
+        switchTab('donate');
+        
+        const donationProjects = document.getElementById('donation-projects');
+        donationProjects.innerHTML = `
+            <div class="project-detail">
+                <h3>Donate to: ${project.name}</h3>
+                <p><strong>Cause:</strong> ${project.cause}</p>
+                <p><strong>Description:</strong> ${project.description}</p>
+                
+                <div class="donation-form">
+                    <h4>Donation Details</h4>
+                    <div class="form-group">
+                        <label for="donor-name">Your Name</label>
+                        <input type="text" id="donor-name" placeholder="Enter your name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="donation-amount">Donation Amount ($)</label>
+                        <input type="number" id="donation-amount" min="1" placeholder="Enter amount">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Suggested Donation Amounts</label>
+                        <div class="donation-options">
+                            <div class="donation-option" onclick="selectDonationAmount(10)">$10</div>
+                            <div class="donation-option" onclick="selectDonationAmount(25)">$25</div>
+                            <div class="donation-option" onclick="selectDonationAmount(50)">$50</div>
+                            <div class="donation-option" onclick="selectDonationAmount(100)">$100</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="donation-message">Message (Optional)</label>
+                        <textarea id="donation-message" rows="3" placeholder="Add a message to the project creator"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>💳 Payment Method</label>
+                        <div class="donation-options">
+                            <div class="donation-option" onclick="selectPaymentMethod('credit-card')">💳 Credit Card</div>
+                            <div class="donation-option" onclick="selectPaymentMethod('paypal')">💰 PayPal</div>
+                            <div class="donation-option" onclick="selectPaymentMethod('bank-transfer')">🏦 Bank Transfer</div>
+                            <div class="donation-option" onclick="selectPaymentMethod('wechat')">💬 WeChat Pay</div>
+                            <div class="donation-option" onclick="selectPaymentMethod('other')">📞 Other Contact</div>
+                        </div>
+                        <input type="hidden" id="payment-method" value="">
+                    </div>
+                    
+                    <div id="payment-details" style="display: none;">
+                        <div id="wechat-details" style="display: none;">
+                            <div class="form-group">
+                                <label for="wechat-id">Your WeChat ID (for donation coordination)</label>
+                                <input type="text" id="wechat-id" placeholder="Enter your WeChat ID">
+                                <small style="color: #666; font-size: 0.9em;">Project creator will contact you via WeChat to coordinate the donation</small>
+                            </div>
+                        </div>
+                        
+                        <div id="other-contact-details" style="display: none;">
+                            <div class="form-group">
+                                <label for="contact-method">Preferred Contact Method</label>
+                                <select id="contact-method">
+                                    <option value="">Select contact method</option>
+                                    <option value="phone">Phone Call</option>
+                                    <option value="email">Email</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="line">LINE</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-info">Contact Information</label>
+                                <input type="text" id="contact-info" placeholder="Enter your contact details">
+                                <small style="color: #666; font-size: 0.9em;">Project creator will reach out to coordinate your donation</small>
+                            </div>
+                        </div>
+                        
+                        <div id="standard-payment-details" style="display: none;">
+                            <p style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                <strong>📋 Next Steps:</strong><br>
+                                After clicking "Complete Donation", you'll be redirected to the secure payment processor to complete your donation.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="processDonation()">Complete Donation</button>
+                    <button class="btn" onclick="renderDonationProjects()" style="margin-left: 10px;">Cancel</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // 选择捐赠金额
+    function selectDonationAmount(amount) {
+        document.getElementById('donation-amount').value = amount;
+        
+        // 更新选中状态
+        document.querySelectorAll('.donation-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        event.target.classList.add('selected');
+    }
+    
+    // 选择支付方式
+    function selectPaymentMethod(method) {
+        document.getElementById('payment-method').value = method;
+        
+        // 更新选中状态
+        document.querySelectorAll('.donation-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        event.target.classList.add('selected');
+        
+        // 显示相应的支付详情
+        const paymentDetails = document.getElementById('payment-details');
+        const wechatDetails = document.getElementById('wechat-details');
+        const otherContactDetails = document.getElementById('other-contact-details');
+        const standardPaymentDetails = document.getElementById('standard-payment-details');
+        
+        // 隐藏所有详情
+        wechatDetails.style.display = 'none';
+        otherContactDetails.style.display = 'none';
+        standardPaymentDetails.style.display = 'none';
+        
+        if (method === 'wechat') {
+            paymentDetails.style.display = 'block';
+            wechatDetails.style.display = 'block';
+        } else if (method === 'other') {
+            paymentDetails.style.display = 'block';
+            otherContactDetails.style.display = 'block';
+        } else if (method === 'credit-card' || method === 'paypal' || method === 'bank-transfer') {
+            paymentDetails.style.display = 'block';
+            standardPaymentDetails.style.display = 'block';
+        } else {
+            paymentDetails.style.display = 'none';
+        }
+    }
+    
+    // 处理捐赠
+    function processDonation() {
+        const donorName = document.getElementById('donor-name').value;
+        const donationAmount = document.getElementById('donation-amount').value;
+        const donationMessage = document.getElementById('donation-message').value;
+        
+        if (!donorName || !donationAmount) {
+            showNotification('Please enter your name and donation amount', 'error');
+            return;
+        }
+        
+        if (currentProject) {
+            currentProject.donations += parseInt(donationAmount);
+            saveProjects();
+            renderProjects();
+        }
+        
+        showNotification(`Thank you, ${donorName}! Your $${donationAmount} donation was successful.`, 'success');
+        
+        // 重置表单
+        document.getElementById('donor-name').value = '';
+        document.getElementById('donation-amount').value = '';
+        document.getElementById('donation-message').value = '';
+        
+        // 清除选中状态
+        document.querySelectorAll('.donation-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        renderDonationProjects();
+    }
+    
+    // 下载计划为PDF
+    function downloadPlan(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        const plan = generateProjectPlan(project);
+        const content = `Project Plan for ${project.name}
+
+${plan.replace(/<[^>]*>/g, '')}`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${project.name.replace(/\s+/g, '_')}_Plan.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // 下载宣传计划为PDF
+    function downloadPromotionPlan(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        const promotionPlan = generateProjectPromotionPlan(project);
+        const content = `Promotion Plan for ${project.name}
+
+${promotionPlan.replace(/<[^>]*>/g, '')}`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${project.name.replace(/\s+/g, '_')}_Promotion_Plan.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // 显示通知
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    
+    // 保存项目到本地存储
+    function saveProjects() {
+        localStorage.setItem('charityProjects', JSON.stringify(projects));
+    }
+    
+    // 从本地存储加载项目
+    function loadProjects() {
+        const savedProjects = localStorage.getItem('charityProjects');
+        if (savedProjects) {
+            projects = JSON.parse(savedProjects);
+        }
+    }
+</script>
+</body>
+</html>
