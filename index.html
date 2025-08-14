@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalized Charity Project Creator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"></script>
     <style>
         * {
             margin: 0;
@@ -276,7 +277,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>modified Personalized Charity Project Creator</h1>
+            <h1>Personalized Charity Project Creator</h1>
             <p>Create Your Unique Charity Project Based on Your Interests</p>
         </div>
         
@@ -334,7 +335,7 @@
                 <textarea id="project-description" rows="6" placeholder="Describe how your interests will be integrated into this charity project"></textarea>
             </div>
             
-            <button type="button" class="btn btn-primary" onclick="createProject()">Create Project</button>
+            <button type="button" class="btn btn-primary" id="create-project-btn">Create Project</button>
         </form>
     </div>
     
@@ -375,7 +376,10 @@
 
 <div class="notification" id="notification"></div>
 
-<script>
+<script type="module">
+    // 引入 Supabase 客户端和保存函数
+    import { saveProject } from './supabase.js';
+    
     // 项目数据
     let projects = [];
     let currentProject = null;
@@ -392,6 +396,80 @@
                 const tabId = this.getAttribute('data-tab');
                 switchTab(tabId);
             });
+        });
+        
+        // 绑定创建项目按钮事件
+        const createProjectBtn = document.getElementById('create-project-btn');
+        if (createProjectBtn) {
+            createProjectBtn.addEventListener('click', createProject);
+        }
+        
+        // 动态绑定项目卡片按钮事件
+        document.addEventListener('click', function(event) {
+            // 查看项目计划按钮
+            if (event.target.classList.contains('view-plan-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                viewProjectPlan(projectId);
+            }
+            
+            // 捐赠到项目按钮
+            if (event.target.classList.contains('donate-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                donateToProject(projectId);
+            }
+            
+            // 捐赠项目按钮
+            if (event.target.classList.contains('donate-project-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                openDonationForm(projectId);
+            }
+            
+            // 下载计划按钮
+            if (event.target.classList.contains('download-plan-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                downloadPlan(projectId);
+            }
+            
+            // 捐赠到项目按钮（在计划详情中）
+            if (event.target.classList.contains('donate-to-project-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                donateToProject(projectId);
+            }
+            
+            // 生成宣传计划按钮
+            if (event.target.classList.contains('generate-promotion-plan-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                generatePromotionPlan(projectId);
+            }
+            
+            // 下载宣传计划按钮
+            if (event.target.classList.contains('download-promotion-plan-btn')) {
+                const projectId = parseInt(event.target.getAttribute('data-project-id'));
+                downloadPromotionPlan(projectId);
+            }
+            
+            // 选择捐赠金额
+            if (event.target.classList.contains('donation-option') && event.target.hasAttribute('data-amount')) {
+                const amount = parseInt(event.target.getAttribute('data-amount'));
+                selectDonationAmount(amount);
+            }
+            
+            // 选择支付方式
+            if (event.target.classList.contains('donation-option') && event.target.hasAttribute('data-method')) {
+                const method = event.target.getAttribute('data-method');
+                selectPaymentMethod(method);
+            }
+            
+            // 完成捐赠按钮
+            if (event.target.id === 'complete-donation-btn') {
+                processDonation();
+            }
+            
+            // 取消捐赠按钮
+            if (event.target.id === 'cancel-donation-btn') {
+                renderDonationProjects();
+                switchTab('donate');
+            }
         });
     });
     
@@ -411,7 +489,7 @@
     }
     
     // 创建项目
-    function createProject() {
+    async function createProject() {
         const projectName = document.getElementById('project-name').value;
         const interests = document.getElementById('interests').value;
         const cause = document.getElementById('cause').value;
@@ -434,15 +512,34 @@
             donations: 0
         };
         
+        // 保存项目到本地存储（主要存储方式）
         projects.push(project);
         saveProjects();
         renderProjects();
         renderDonationProjects();
         
+        // 尝试保存到 Supabase（可选，用于备份/同步）
+        try {
+            const result = await saveProject(project);
+            if (result.success) {
+                console.log('Project also saved to Supabase');
+            } else {
+                // 特别处理行级安全策略错误
+                if (result.code === '42501') {
+                    console.log('由于行级安全策略，无法保存到Supabase数据库。这在演示环境中是正常的。项目已成功保存到本地存储。');
+                } else {
+                    console.log('Failed to save project to Supabase (this is OK for demo purposes):', result.error);
+                }
+            }
+        } catch (error) {
+            console.log('Supabase save failed (this is OK for demo purposes):', error.message);
+        }
+        
         // 清空表单
         document.getElementById('project-form').reset();
         
         showNotification('Project created successfully!', 'success');
+        
         switchTab('projects');
     }
     
@@ -450,12 +547,19 @@
     function renderProjects() {
         const projectsList = document.getElementById('projects-list');
         
+        // 安全地访问 no-projects-message 元素
+        const noProjectsMessage = document.getElementById('no-projects-message');
+        
         if (projects.length === 0) {
-            document.getElementById('no-projects-message').style.display = 'block';
+            if (noProjectsMessage) {
+                noProjectsMessage.style.display = 'block';
+            }
             return;
         }
         
-        document.getElementById('no-projects-message').style.display = 'none';
+        if (noProjectsMessage) {
+            noProjectsMessage.style.display = 'none';
+        }
         
         projectsList.innerHTML = '';
         
@@ -468,8 +572,8 @@
                 <p><strong>Cause:</strong> ${project.cause}</p>
                 <p><strong>Target Audience:</strong> ${project.targetAudience}</p>
                 <p><strong>Description:</strong> ${project.description}</p>
-                <button class="btn btn-primary" onclick="viewProjectPlan(${project.id})">View Detailed Plan</button>
-                <button class="btn btn-primary" onclick="donateToProject(${project.id})" style="margin-left: 10px;">Donate</button>
+                <button class="btn btn-primary view-plan-btn" data-project-id="${project.id}">View Detailed Plan</button>
+                <button class="btn btn-primary donate-btn" data-project-id="${project.id}" style="margin-left: 10px;">Donate</button>
             `;
             projectsList.appendChild(projectCard);
         });
@@ -493,7 +597,7 @@
                 <h3>${project.name}</h3>
                 <p><strong>Cause:</strong> ${project.cause}</p>
                 <p><strong>Description:</strong> ${project.description.substring(0, 100)}...</p>
-                <button class="btn btn-primary" onclick="openDonationForm(${project.id})">Donate to this Project</button>
+                <button class="btn btn-primary donate-project-btn" data-project-id="${project.id}">Donate to this Project</button>
             `;
             donationProjects.appendChild(projectCard);
         });
@@ -516,9 +620,9 @@
                 <div class="project-plan">
                     ${plan}
                 </div>
-                <button class="btn btn-primary" onclick="downloadPlan(${project.id})">Download Plan as PDF</button>
-                <button class="btn btn-primary" onclick="donateToProject(${project.id})" style="margin-left: 10px;">Donate to this Project</button>
-                <button class="btn btn-primary" onclick="generatePromotionPlan(${project.id})" style="margin-left: 10px;">Generate Promotion Plan</button>
+                <button class="btn btn-primary download-plan-btn" data-project-id="${project.id}">Download Plan as PDF</button>
+                <button class="btn btn-primary donate-to-project-btn" data-project-id="${project.id}" style="margin-left: 10px;">Donate to this Project</button>
+                <button class="btn btn-primary generate-promotion-plan-btn" data-project-id="${project.id}" style="margin-left: 10px;">Generate Promotion Plan</button>
             </div>
         `;
         
@@ -542,31 +646,7 @@
                 <div class="project-plan">
                     ${promotionPlan}
                 </div>
-                <button class="btn btn-primary" onclick="downloadPromotionPlan(${project.id})">Download Promotion Plan as PDF</button>
-            </div>
-        `;
-        
-        switchTab('promotion');
-    }
-    
-    // 生成宣传计划
-    function generatePromotionPlan(projectId) {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return;
-        
-        currentProject = project;
-        const promotionContent = document.getElementById('promotion-plan-content');
-        
-        // 生成宣传计划
-        const promotionPlan = generateProjectPromotionPlan(project);
-        
-        promotionContent.innerHTML = `
-            <div class="project-detail">
-                <h3>${project.name} - Promotion Plan</h3>
-                <div class="project-plan">
-                    ${promotionPlan}
-                </div>
-                <button class="btn btn-primary" onclick="downloadPromotionPlan(${project.id})">Download Promotion Plan as PDF</button>
+                <button class="btn btn-primary download-promotion-plan-btn" data-project-id="${project.id}">Download Promotion Plan as PDF</button>
             </div>
         `;
         
@@ -1129,10 +1209,10 @@
                     <div class="form-group">
                         <label>Suggested Donation Amounts</label>
                         <div class="donation-options">
-                            <div class="donation-option" onclick="selectDonationAmount(10)">$10</div>
-                            <div class="donation-option" onclick="selectDonationAmount(25)">$25</div>
-                            <div class="donation-option" onclick="selectDonationAmount(50)">$50</div>
-                            <div class="donation-option" onclick="selectDonationAmount(100)">$100</div>
+                            <div class="donation-option" data-amount="10">$10</div>
+                            <div class="donation-option" data-amount="25">$25</div>
+                            <div class="donation-option" data-amount="50">$50</div>
+                            <div class="donation-option" data-amount="100">$100</div>
                         </div>
                     </div>
                     
@@ -1144,11 +1224,11 @@
                     <div class="form-group">
                         <label>💳 Payment Method</label>
                         <div class="donation-options">
-                            <div class="donation-option" onclick="selectPaymentMethod('credit-card')">💳 Credit Card</div>
-                            <div class="donation-option" onclick="selectPaymentMethod('paypal')">💰 PayPal</div>
-                            <div class="donation-option" onclick="selectPaymentMethod('bank-transfer')">🏦 Bank Transfer</div>
-                            <div class="donation-option" onclick="selectPaymentMethod('wechat')">💬 WeChat Pay</div>
-                            <div class="donation-option" onclick="selectPaymentMethod('other')">📞 Other Contact</div>
+                            <div class="donation-option" data-method="credit-card">💳 Credit Card</div>
+                            <div class="donation-option" data-method="paypal">💰 PayPal</div>
+                            <div class="donation-option" data-method="bank-transfer">🏦 Bank Transfer</div>
+                            <div class="donation-option" data-method="wechat">💬 WeChat Pay</div>
+                            <div class="donation-option" data-method="other">📞 Other Contact</div>
                         </div>
                         <input type="hidden" id="payment-method" value="">
                     </div>
@@ -1190,8 +1270,8 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary" onclick="processDonation()">Complete Donation</button>
-                    <button class="btn" onclick="renderDonationProjects()" style="margin-left: 10px;">Cancel</button>
+                    <button class="btn btn-primary" id="complete-donation-btn">Complete Donation</button>
+                    <button class="btn" id="cancel-donation-btn" style="margin-left: 10px;">Cancel</button>
                 </div>
             </div>
         `;
