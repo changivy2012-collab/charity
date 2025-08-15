@@ -105,4 +105,37 @@ async function loadProjectsFromSupabase() {
 }
 
 // 导出函数供其他文件使用
-export { supabase, saveProject, loadProjectsFromSupabase };
+async function deleteProjectFromSupabase(projectId) {
+    console.log('正在从Supabase删除项目:', projectId);
+    
+    // 等待客户端初始化
+    while (!supabase) {
+        console.log('等待Supabase客户端初始化...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    try {
+        const { data, error } = await supabase
+            .from('projects')
+            .delete()
+            .eq('id', projectId);
+            
+        if (error) {
+            console.error('删除项目时出错:', error);
+            if (error.code === '42501') {
+                console.error('行级安全策略错误 - 请检查Supabase的RLS策略');
+                return { success: false, error: 'Permission denied - please check database permissions' };
+            }
+            return { success: false, error: error.message };
+        }
+        
+        console.log('项目删除成功:', data);
+        return { success: true, data };
+        
+    } catch (error) {
+        console.error('删除项目时发生异常:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+export { supabase, saveProject, loadProjectsFromSupabase, deleteProjectFromSupabase };
