@@ -508,7 +508,14 @@
             targetAudience: targetAudience,
             description: projectDescription,
             createdAt: new Date().toISOString(),
-            donations: 0
+            donations: 0,
+            projectplan: generateProjectPromotionPlan({
+                name: projectName,
+                interests: interests,
+                cause: cause,
+                targetAudience: targetAudience,
+                description: projectDescription
+            })
         };
         
         // 保存项目到Supabase（主要存储方式）
