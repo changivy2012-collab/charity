@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
         schema: 'public'
       }
     });
+    // 将客户端附加到window对象，以便在其他文件中访问
+    window.supabaseClient = supabase;
   } else {
     console.error('Supabase library not loaded');
   }
@@ -75,5 +77,34 @@ async function saveProject(projectData) {
   }
 }
 
+/**
+ * 从 Supabase 数据库加载所有项目
+ * @returns {Promise<Array>} 项目数组
+ */
+async function loadProjectsFromSupabase() {
+  // 等待supabase客户端初始化完成
+  while (!supabase) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  try {
+    // 从 'projects' 表中获取所有项目
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('项目加载成功:', data);
+    return data || [];
+  } catch (error) {
+    console.error('加载项目时出错:', error);
+    return [];
+  }
+}
+
 // 导出函数供其他文件使用
-export { supabase, saveProject };
+export { supabase, saveProject, loadProjectsFromSupabase };

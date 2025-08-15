@@ -387,8 +387,8 @@
     let currentProject = null;
     
     // 初始化应用
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProjects();
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadProjects();
         renderProjects();
         renderDonationProjects();
         
@@ -1564,11 +1564,49 @@ ${promotionPlan.replace(/<[^>]*>/g, '')}`;
         localStorage.setItem('charityProjects', JSON.stringify(projects));
     }
     
-    // 从本地存储加载项目
-    function loadProjects() {
+    // 从 Supabase 或本地存储加载项目
+    async function loadProjects() {
+        try {
+            // 等待supabase客户端初始化完成
+             let attempts = 0;
+             while (!window.supabaseClient && attempts < 50) { // 限制尝试次数以避免无限循环
+                 await new Promise(resolve => setTimeout(resolve, 100));
+                 attempts++;
+             }
+             
+             if (!window.supabaseClient) {
+                 console.error('Supabase client not initialized after waiting');
+                 throw new Error('Supabase client not initialized');
+             }
+            
+            // 尝试从 Supabase 加载项目
+            const { data, error } = await window.supabaseClient
+                .from('projects')
+                .select('*')
+                .order('createdAt', { ascending: false });
+            
+            if (error) {
+                throw error;
+            }
+            
+            const supabaseProjects = data || [];
+            
+            if (supabaseProjects && supabaseProjects.length > 0) {
+                projects = supabaseProjects;
+                // 同步到本地存储
+                saveProjects();
+                console.log('Projects loaded from Supabase');
+                return;
+            }
+        } catch (error) {
+            console.log('Failed to load projects from Supabase:', error.message);
+        }
+        
+        // 如果 Supabase 加载失败或没有项目，则从本地存储加载
         const savedProjects = localStorage.getItem('charityProjects');
         if (savedProjects) {
             projects = JSON.parse(savedProjects);
+            console.log('Projects loaded from localStorage');
         }
     }
 </script>
