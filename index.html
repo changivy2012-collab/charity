@@ -629,8 +629,8 @@
         currentProject = project;
         const planContent = document.getElementById('project-plan-content');
         
-        // 生成详细的项目计划
-        const plan = generateProjectPlan(project);
+        // 使用项目中的projectplan字段，如果不存在则生成
+        const plan = project.projectplan || generateProjectPlan(project);
         
         planContent.innerHTML = `
             <div class="project-detail">
@@ -1382,7 +1382,8 @@
         const project = projects.find(p => p.id === projectId);
         if (!project) return;
         
-        const plan = generateProjectPlan(project);
+        // 使用项目中的projectplan字段，如果不存在则生成
+        const plan = project.projectplan || generateProjectPlan(project);
         const content = `Project Plan for ${project.name}
 
 ${plan.replace(/<[^>]*>/g, '')}`;
