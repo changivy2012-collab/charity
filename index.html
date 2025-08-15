@@ -157,16 +157,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
         
         .project-card {
             background: #f8f9fa;
@@ -183,13 +173,6 @@
         
         .project-card p {
             margin-bottom: 10px;
-        }
-
-        .project-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
         }
         
         .project-detail {
@@ -451,7 +434,7 @@
 
 <script type="module">
     // 引入 Supabase 客户端和保存函数
-    import { saveProject, loadProjectsFromSupabase, deleteProjectFromSupabase } from './supabase.js';
+    import { saveProject, loadProjectsFromSupabase } from './supabase.js';
     
     // 项目数据
     let projects = [];
@@ -519,12 +502,6 @@
             if (event.target.classList.contains('download-promotion-plan-btn')) {
                 const projectId = parseInt(event.target.getAttribute('data-project-id'));
                 downloadPromotionPlan(projectId);
-            }
-            
-            // 删除项目按钮
-            if (event.target.classList.contains('delete-project-btn')) {
-                const projectId = parseInt(event.target.getAttribute('data-project-id'));
-                deleteProject(projectId);
             }
             
             // 选择捐赠金额
@@ -676,11 +653,8 @@
                 <p><strong>Cause:</strong> ${project.cause}</p>
                 <p><strong>Target Audience:</strong> ${project.targetAudience}</p>
                 <p><strong>Description:</strong> ${project.description}</p>
-                <div class="project-actions">
-                    <button class="btn btn-primary view-plan-btn" data-project-id="${project.id}">View Detailed Plan</button>
-                    <button class="btn btn-primary donate-btn" data-project-id="${project.id}">Donate</button>
-                    <button class="btn btn-danger delete-project-btn" data-project-id="${project.id}" style="margin-left: 10px;">Delete</button>
-                </div>
+                <button class="btn btn-primary view-plan-btn" data-project-id="${project.id}">View Detailed Plan</button>
+                <button class="btn btn-primary donate-btn" data-project-id="${project.id}" style="margin-left: 10px;">Donate</button>
             `;
             projectsList.appendChild(projectCard);
         });
@@ -758,34 +732,6 @@
         `;
         
         switchTab('promotion');
-    }
-    
-    // 删除项目
-    async function deleteProject(projectId) {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return;
-        
-        // 确认删除
-        const confirmed = confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`);
-        if (!confirmed) return;
-        
-        try {
-            const result = await deleteProjectFromSupabase(projectId);
-            if (result.success) {
-                showNotification('Project deleted successfully!', 'success');
-                
-                // 重新从Supabase加载最新数据
-                await loadProjects();
-                renderProjects();
-                renderDonationProjects();
-            } else {
-                console.error('删除项目失败:', result.error);
-                showNotification('Failed to delete project: ' + result.error, 'error');
-            }
-        } catch (error) {
-            console.error('删除项目时出错:', error);
-            showNotification('删除项目失败: ' + error.message, 'error');
-        }
     }
     
     // 生成项目计划
