@@ -509,6 +509,15 @@
             return;
         }
         
+        // 生成项目计划
+        const projectPlan = generateProjectPlan({
+            name: projectName,
+            interests: interests,
+            cause: cause,
+            targetAudience: targetAudience,
+            description: projectDescription
+        });
+        
         const project = {
             id: Date.now(),
             name: projectName,
@@ -516,6 +525,7 @@
             cause: cause,
             targetAudience: targetAudience,
             description: projectDescription,
+            projectplan: projectPlan, // 添加项目计划到项目对象
             createdAt: new Date(),
             donations: 0
         };
