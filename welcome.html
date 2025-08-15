@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Charity Project Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .welcome-container {
+            max-width: 800px;
+            padding: 40px;
+        }
+        
+        .earth-image {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+            background-image: url('https://images.unsplash.com/photo-1614730321146-b6e5ef0a7a52');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        
+        .welcome-message {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 50px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="earth-image"></div>
+        <h1 class="welcome-message">Rise above, lift others up</h1>
+        <button class="btn" onclick="showInstructions()">View Instructions</button>
+    </div>
+
+    <script>
+        function showInstructions() {
+            // Hide welcome page and show instructions
+            document.body.innerHTML = `
+                <div class="welcome-container">
+                    <h1 style="margin-bottom: 30px;">How to Use This Website</h1>
+                    
+                    <div style="text-align: left; margin-bottom: 40px;">
+                        <h2 style="margin: 20px 0 10px; color: white;">1. Create a Project</h2>
+                        <p>Click on "Create Project" to start your own charity initiative.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">2. Customize Your Project</h2>
+                        <p>Add details about your cause, target audience, and how you want to help.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">3. Generate a Plan</h2>
+                        <p>Our system will create a customized promotion plan based on your interests.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">4. Share and Donate</h2>
+                        <p>Share your project with others and accept donations to support your cause.</p>
+                    </div>
+                    
+                    <button class="btn" onclick="window.location.href='index.html'">Get Started</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

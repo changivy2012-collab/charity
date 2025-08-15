@@ -4,7 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalized Charity Project Creator</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"></script>
+    <script>
+        // Check if this is first visit (no localStorage flag)
+        if (!localStorage.getItem('visitedBefore')) {
+            localStorage.setItem('visitedBefore', 'true');
+            window.location.href = 'welcome.html';
+        }
+    </script>
+    <script>
+  function loadSupabase() {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest';
+    script.onerror = function() {
+      console.log('CDN failed, loading from local supabase.js');
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = './supabase.js';
+      document.head.appendChild(fallbackScript);
+    };
+    document.head.appendChild(script);
+  }
+  loadSupabase();
+</script>
     <style>
         * {
             margin: 0;
@@ -275,6 +295,32 @@
             background: linear-gradient(90deg, #dc3545, #c82333);
         }
         
+        .welcome-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .earth-image {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+            background-image: url('earth-image.jpg'), url('https://images.unsplash.com/photo-1614730321146-b6e5ef0a7a52');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        
+        .welcome-message {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 50px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
         @media (max-width: 768px) {
             .nav-tabs {
                 flex-direction: column;
@@ -299,7 +345,8 @@
         </div>
         
         <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="creator">Project Creator</div>
+            <div class="nav-tab active" data-tab="welcome">Welcome</div>
+            <div class="nav-tab" data-tab="creator">Project Creator</div>
             <div class="nav-tab" data-tab="projects">My Projects</div>
             <div class="nav-tab" data-tab="donate">Donate</div>
             <div class="nav-tab" data-tab="plan">Project Plan</div>
@@ -307,8 +354,17 @@
         </div>
         
         <div class="tab-content">
+            <!-- Welcome模块 -->
+            <div class="tab-pane active" id="welcome-tab">
+                <div class="welcome-container">
+                    <div class="earth-image"></div>
+                    <h1 class="welcome-message">Rise above, lift others up</h1>
+                    <button class="btn" onclick="showInstructions()">Get Started</button>
+                </div>
+            </div>
+            
             <!-- 项目创建模块 -->
-            <div class="tab-pane active" id="creator-tab">
+            <div class="tab-pane" id="creator-tab">
                 <h2>Create Your Personalized Charity Project</h2>
                 <form id="project-form">
                     <div class="form-group">
@@ -497,7 +553,31 @@
     });
     
     // 标签页切换
-    function switchTab(tabId) {
+    function showInstructions() {
+            document.querySelector('#welcome-tab').innerHTML = `
+                <div class="welcome-container">
+                    <h1 style="margin-bottom: 30px;">How to Use This Website</h1>
+                    
+                    <div style="text-align: left; margin-bottom: 40px;">
+                        <h2 style="margin: 20px 0 10px; color: white;">1. Create a Project</h2>
+                        <p>Click on "Create Project" to start your own charity initiative.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">2. Customize Your Project</h2>
+                        <p>Add details about your cause, target audience, and how you want to help.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">3. Generate a Plan</h2>
+                        <p>Our system will create a customized promotion plan based on your interests.</p>
+                        
+                        <h2 style="margin: 20px 0 10px; color: white;">4. Share and Donate</h2>
+                        <p>Share your project with others and accept donations to support your cause.</p>
+                    </div>
+                    
+                    <button class="btn" onclick="switchTab('creator')">Get Started</button>
+                </div>
+            `;
+        }
+        
+        function switchTab(tabId) {
         // 更新标签页状态
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.classList.remove('active');
