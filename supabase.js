@@ -75,5 +75,34 @@ async function saveProject(projectData) {
   }
 }
 
+/**
+ * 从 Supabase 数据库加载项目
+ * @returns {Promise<Object>} 加载结果
+ */
+async function loadProjectsFromSupabase() {
+  // 等待supabase客户端初始化完成
+  while (!supabase) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  try {
+    // 从 'projects' 表中获取所有项目
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('从Supabase成功加载项目:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('从Supabase加载项目时出错:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // 导出函数供其他文件使用
-export { supabase, saveProject };
+export { supabase, saveProject, loadProjectsFromSupabase };

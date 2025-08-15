@@ -378,15 +378,15 @@
 
 <script type="module">
     // 引入 Supabase 客户端和保存函数
-    import { saveProject } from './supabase.js';
+    import { saveProject, loadProjectsFromSupabase } from './supabase.js';
     
     // 项目数据
     let projects = [];
     let currentProject = null;
     
     // 初始化应用
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProjects();
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadProjects();
         renderProjects();
         renderDonationProjects();
         
@@ -502,43 +502,37 @@
         }
         
         const project = {
-            id: Date.now(),
             name: projectName,
             interests: interests,
             cause: cause,
             targetAudience: targetAudience,
             description: projectDescription,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             donations: 0
         };
         
-        // 保存项目到本地存储（主要存储方式）
-        projects.push(project);
-        saveProjects();
-        renderProjects();
-        renderDonationProjects();
-        
-        // 尝试保存到 Supabase（可选，用于备份/同步）
+        // 保存项目到Supabase（主要存储方式）
         try {
             const result = await saveProject(project);
             if (result.success) {
-                console.log('Project also saved to Supabase');
+                console.log('项目成功保存到Supabase');
+                showNotification('Project created successfully!', 'success');
+                
+                // 重新从Supabase加载最新数据
+                await loadProjects();
+                renderProjects();
+                renderDonationProjects();
             } else {
-                // 特别处理行级安全策略错误
-                if (result.code === '42501') {
-                    console.log('由于行级安全策略，无法保存到Supabase数据库。这在演示环境中是正常的。项目已成功保存到本地存储。');
-                } else {
-                    console.log('Failed to save project to Supabase (this is OK for demo purposes):', result.error);
-                }
+                console.error('保存项目失败:', result.error);
+                showNotification('Failed to save project: ' + result.error, 'error');
             }
         } catch (error) {
-            console.log('Supabase save failed (this is OK for demo purposes):', error.message);
+            console.error('创建项目时出错:', error);
+            showNotification('创建项目失败: ' + error.message, 'error');
         }
         
         // 清空表单
         document.getElementById('project-form').reset();
-        
-        showNotification('Project created successfully!', 'success');
         
         switchTab('projects');
     }
@@ -618,7 +612,7 @@
             <div class="project-detail">
                 <h3>${project.name} - Detailed Plan</h3>
                 <div class="project-plan">
-                    ${plan}
+                    ${project.projectplan}
                 </div>
                 <button class="btn btn-primary download-plan-btn" data-project-id="${project.id}">Download Plan as PDF</button>
                 <button class="btn btn-primary donate-to-project-btn" data-project-id="${project.id}" style="margin-left: 10px;">Donate to this Project</button>
@@ -1326,7 +1320,7 @@
     }
     
     // 处理捐赠
-    function processDonation() {
+    async function processDonation() {
         const donorName = document.getElementById('donor-name').value;
         const donationAmount = document.getElementById('donation-amount').value;
         const donationMessage = document.getElementById('donation-message').value;
@@ -1337,12 +1331,41 @@
         }
         
         if (currentProject) {
-            currentProject.donations += parseInt(donationAmount);
-            saveProjects();
-            renderProjects();
+            try {
+                // 更新当前项目的捐赠金额
+                const updatedDonations = (currentProject.donations || 0) + parseInt(donationAmount);
+                
+                // 等待supabase客户端初始化
+                while (!window.supabaseModule.supabase) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // 更新Supabase中的项目数据
+                const { data, error } = await window.supabaseModule.supabase
+                    .from('projects')
+                    .update({ donations: updatedDonations })
+                    .eq('id', currentProject.id)
+                    .select();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    console.log('捐赠信息已更新到Supabase');
+                    
+                    // 重新加载最新数据
+                    await loadProjects();
+                    renderProjects();
+                    renderDonationProjects();
+                    
+                    showNotification(`Thank you, ${donorName}! Your $${donationAmount} donation was successful.`, 'success');
+                }
+            } catch (error) {
+                console.error('更新捐赠信息失败:', error);
+                showNotification('Failed to process donation: ' + error.message, 'error');
+            }
         }
-        
-        showNotification(`Thank you, ${donorName}! Your $${donationAmount} donation was successful.`, 'success');
         
         // 重置表单
         document.getElementById('donor-name').value = '';
@@ -1353,8 +1376,6 @@
         document.querySelectorAll('.donation-option').forEach(option => {
             option.classList.remove('selected');
         });
-        
-        renderDonationProjects();
     }
     
     // 下载计划为PDF
@@ -1410,16 +1431,27 @@ ${promotionPlan.replace(/<[^>]*>/g, '')}`;
         }, 3000);
     }
     
-    // 保存项目到本地存储
-    function saveProjects() {
-        localStorage.setItem('charityProjects', JSON.stringify(projects));
+    // 保存项目到Supabase（不再使用本地存储）
+    async function saveProjects() {
+        // 不再需要本地存储，数据直接从Supabase获取
+        console.log('数据已保存到Supabase');
     }
     
-    // 从本地存储加载项目
-    function loadProjects() {
-        const savedProjects = localStorage.getItem('charityProjects');
-        if (savedProjects) {
-            projects = JSON.parse(savedProjects);
+    // 从Supabase加载项目（不再从本地缓存读取）
+    async function loadProjects() {
+        try {
+            const result = await loadProjectsFromSupabase();
+            if (result.success) {
+                projects = result.data;
+                console.log('从Supabase成功加载 ' + projects.length + ' 个项目');
+            } else {
+                console.error('从Supabase加载项目失败:', result.error);
+                // 如果Supabase加载失败，使用空数组
+                projects = [];
+            }
+        } catch (error) {
+            console.error('加载项目时出错:', error);
+            projects = [];
         }
     }
 </script>
