@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalized Charity Project Creator</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@latest"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsmind@0.8.6/style/jsmind.css" />
-    <script src="https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js"></script>
     <style>
         * {
             margin: 0;
@@ -380,7 +378,7 @@
 
 <script type="module">
     // 引入 Supabase 客户端和保存函数
-    import { saveProject } from './supabase.js';
+    import { saveProject, loadProjectsFromSupabase } from './supabase.js';
     
     // 项目数据
     let projects = [];
@@ -450,12 +448,6 @@
                 downloadPromotionPlan(projectId);
             }
             
-            // 生成思维导图按钮
-            if (event.target.classList.contains('generate-mindmap-btn')) {
-                const projectId = parseInt(event.target.getAttribute('data-project-id'));
-                generateMindmap(projectId);
-            }
-            
             // 选择捐赠金额
             if (event.target.classList.contains('donation-option') && event.target.hasAttribute('data-amount')) {
                 const amount = parseInt(event.target.getAttribute('data-amount'));
@@ -509,54 +501,38 @@
             return;
         }
         
-        // 生成项目计划
-        const projectPlan = generateProjectPlan({
-            name: projectName,
-            interests: interests,
-            cause: cause,
-            targetAudience: targetAudience,
-            description: projectDescription
-        });
-        
         const project = {
-            id: Date.now(),
             name: projectName,
             interests: interests,
             cause: cause,
             targetAudience: targetAudience,
             description: projectDescription,
-            projectplan: projectPlan, // 添加项目计划到项目对象
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             donations: 0
         };
         
-        // 保存项目到本地存储（主要存储方式）
-        projects.push(project);
-        saveProjects();
-        renderProjects();
-        renderDonationProjects();
-        
-        // 尝试保存到 Supabase（可选，用于备份/同步）
+        // 保存项目到Supabase（主要存储方式）
         try {
             const result = await saveProject(project);
             if (result.success) {
-                console.log('Project also saved to Supabase');
+                console.log('项目成功保存到Supabase');
+                showNotification('Project created successfully!', 'success');
+                
+                // 重新从Supabase加载最新数据
+                await loadProjects();
+                renderProjects();
+                renderDonationProjects();
             } else {
-                // 特别处理行级安全策略错误
-                if (result.code === '42501') {
-                    console.log('由于行级安全策略，无法保存到Supabase数据库。这在演示环境中是正常的。项目已成功保存到本地存储。');
-                } else {
-                    console.log('Failed to save project to Supabase (this is OK for demo purposes):', result.error);
-                }
+                console.error('保存项目失败:', result.error);
+                showNotification('Failed to save project: ' + result.error, 'error');
             }
         } catch (error) {
-            console.log('Supabase save failed (this is OK for demo purposes):', error.message);
+            console.error('创建项目时出错:', error);
+            showNotification('创建项目失败: ' + error.message, 'error');
         }
         
         // 清空表单
         document.getElementById('project-form').reset();
-        
-        showNotification('Project created successfully!', 'success');
         
         switchTab('projects');
     }
@@ -629,20 +605,18 @@
         currentProject = project;
         const planContent = document.getElementById('project-plan-content');
         
-        // 使用项目中的projectplan字段，如果不存在则生成
-        const plan = project.projectplan || generateProjectPlan(project);
+        // 生成详细的项目计划
+        const plan = generateProjectPlan(project);
         
         planContent.innerHTML = `
             <div class="project-detail">
                 <h3>${project.name} - Detailed Plan</h3>
                 <div class="project-plan">
-                    ${plan}
+                    ${project.projectplan}
                 </div>
                 <button class="btn btn-primary download-plan-btn" data-project-id="${project.id}">Download Plan as PDF</button>
                 <button class="btn btn-primary donate-to-project-btn" data-project-id="${project.id}" style="margin-left: 10px;">Donate to this Project</button>
                 <button class="btn btn-primary generate-promotion-plan-btn" data-project-id="${project.id}" style="margin-left: 10px;">Generate Promotion Plan</button>
-                <button class="btn btn-primary generate-mindmap-btn" data-project-id="${project.id}" style="margin-left: 10px;">Generate Mindmap</button>
-                <div id="mindmap-container" style="width: 100%; height: 500px; margin-top: 20px; display: none;"></div>
             </div>
         `;
         
@@ -1346,7 +1320,7 @@
     }
     
     // 处理捐赠
-    function processDonation() {
+    async function processDonation() {
         const donorName = document.getElementById('donor-name').value;
         const donationAmount = document.getElementById('donation-amount').value;
         const donationMessage = document.getElementById('donation-message').value;
@@ -1357,12 +1331,41 @@
         }
         
         if (currentProject) {
-            currentProject.donations += parseInt(donationAmount);
-            saveProjects();
-            renderProjects();
+            try {
+                // 更新当前项目的捐赠金额
+                const updatedDonations = (currentProject.donations || 0) + parseInt(donationAmount);
+                
+                // 等待supabase客户端初始化
+                while (!window.supabaseModule.supabase) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // 更新Supabase中的项目数据
+                const { data, error } = await window.supabaseModule.supabase
+                    .from('projects')
+                    .update({ donations: updatedDonations })
+                    .eq('id', currentProject.id)
+                    .select();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    console.log('捐赠信息已更新到Supabase');
+                    
+                    // 重新加载最新数据
+                    await loadProjects();
+                    renderProjects();
+                    renderDonationProjects();
+                    
+                    showNotification(`Thank you, ${donorName}! Your $${donationAmount} donation was successful.`, 'success');
+                }
+            } catch (error) {
+                console.error('更新捐赠信息失败:', error);
+                showNotification('Failed to process donation: ' + error.message, 'error');
+            }
         }
-        
-        showNotification(`Thank you, ${donorName}! Your $${donationAmount} donation was successful.`, 'success');
         
         // 重置表单
         document.getElementById('donor-name').value = '';
@@ -1373,8 +1376,6 @@
         document.querySelectorAll('.donation-option').forEach(option => {
             option.classList.remove('selected');
         });
-        
-        renderDonationProjects();
     }
     
     // 下载计划为PDF
@@ -1382,8 +1383,7 @@
         const project = projects.find(p => p.id === projectId);
         if (!project) return;
         
-        // 使用项目中的projectplan字段，如果不存在则生成
-        const plan = project.projectplan || generateProjectPlan(project);
+        const plan = generateProjectPlan(project);
         const content = `Project Plan for ${project.name}
 
 ${plan.replace(/<[^>]*>/g, '')}`;
@@ -1420,134 +1420,6 @@ ${promotionPlan.replace(/<[^>]*>/g, '')}`;
         URL.revokeObjectURL(url);
     }
     
-    // 生成思维导图
-    function generateMindmap(projectId) {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return;
-        
-        // 构建思维导图数据
-        const mindData = {
-            meta: {
-                name: 'Project Mindmap',
-                version: '1.0'
-            },
-            format: 'node_tree',
-            data: {
-                id: 'root',
-                topic: project.name,
-                children: [
-                    {
-                        id: 'overview',
-                        topic: 'Project Overview',
-                        direction: 'right',
-                        children: [
-                            { id: 'cause', topic: `Cause: ${project.cause}` },
-                            { id: 'interests', topic: `Interests: ${project.interests}` },
-                            { id: 'target', topic: `Target Audience: ${project.targetAudience}` },
-                            { id: 'description', topic: `Description: ${project.description}` }
-                        ]
-                    },
-                    {
-                        id: 'goals',
-                        topic: 'Strategic Goals',
-                        direction: 'right',
-                        children: [
-                            { id: 'goal1', topic: 'Increase awareness about ' + project.cause },
-                            { id: 'goal2', topic: 'Raise $5,000 for the cause' },
-                            { id: 'goal3', topic: 'Engage 100+ volunteers' },
-                            { id: 'goal4', topic: 'Create sustainable impact' }
-                        ]
-                    },
-                    {
-                        id: 'activities',
-                        topic: 'Key Activities',
-                        direction: 'right',
-                        children: getActivitiesByInterest(project.interests)
-                    },
-                    {
-                        id: 'timeline',
-                        topic: 'Implementation Timeline',
-                        direction: 'right',
-                        children: [
-                            { id: 'phase1', topic: 'Phase 1: Foundation (Months 1-2)' },
-                            { id: 'phase2', topic: 'Phase 2: Launch (Months 3-4)' },
-                            { id: 'phase3', topic: 'Phase 3: Growth (Months 5-8)' },
-                            { id: 'phase4', topic: 'Phase 4: Evaluation (Months 9-12)' }
-                        ]
-                    },
-                    {
-                        id: 'metrics',
-                        topic: 'Success Metrics',
-                        direction: 'right',
-                        children: [
-                            { id: 'short', topic: 'Short-term: Direct service metrics' },
-                            { id: 'medium', topic: 'Medium-term: Community engagement' },
-                            { id: 'long', topic: 'Long-term: Sustainable impact' }
-                        ]
-                    }
-                ]
-            }
-        };
-        
-        // 显示思维导图容器
-        const mindmapContainer = document.getElementById('mindmap-container');
-        mindmapContainer.style.display = 'block';
-        
-        // 初始化思维导图
-        const options = {
-            container: 'mindmap-container',
-            editable: false,
-            theme: 'primary'
-        };
-        
-        const jm = new jsMind(options);
-        jm.show(mindData);
-    }
-    
-    // 根据兴趣获取活动
-    function getActivitiesByInterest(interests) {
-        const activities = [];
-        
-        if (interests.toLowerCase().includes('music')) {
-            activities.push({ id: 'music1', topic: 'Benefit Concerts' });
-            activities.push({ id: 'music2', topic: 'Music Workshops' });
-            activities.push({ id: 'music3', topic: 'Streaming Fundraisers' });
-        }
-        
-        if (interests.toLowerCase().includes('art') || interests.toLowerCase().includes('painting')) {
-            activities.push({ id: 'art1', topic: 'Charity Art Exhibitions' });
-            activities.push({ id: 'art2', topic: 'Art Classes' });
-            activities.push({ id: 'art3', topic: 'Community Murals' });
-        }
-        
-        if (interests.toLowerCase().includes('sports') || interests.toLowerCase().includes('athletic')) {
-            activities.push({ id: 'sports1', topic: 'Charity Runs/Walks' });
-            activities.push({ id: 'sports2', topic: 'Tournaments' });
-            activities.push({ id: 'sports3', topic: 'Fitness Challenges' });
-        }
-        
-        if (interests.toLowerCase().includes('technology') || interests.toLowerCase().includes('coding')) {
-            activities.push({ id: 'tech1', topic: 'Tech for Good Hackathons' });
-            activities.push({ id: 'tech2', topic: 'Digital Campaigns' });
-            activities.push({ id: 'tech3', topic: 'Online Fundraising Platforms' });
-        }
-        
-        if (interests.toLowerCase().includes('cooking') || interests.toLowerCase().includes('food')) {
-            activities.push({ id: 'cooking1', topic: 'Charity Dinners' });
-            activities.push({ id: 'cooking2', topic: 'Cooking Classes' });
-            activities.push({ id: 'cooking3', topic: 'Food Sales' });
-        }
-        
-        // 如果没有匹配的兴趣，添加通用活动
-        if (activities.length === 0) {
-            activities.push({ id: 'general1', topic: 'Community Events' });
-            activities.push({ id: 'general2', topic: 'Fundraising Activities' });
-            activities.push({ id: 'general3', topic: 'Awareness Campaigns' });
-        }
-        
-        return activities;
-    }
-    
     // 显示通知
     function showNotification(message, type) {
         const notification = document.getElementById('notification');
@@ -1559,54 +1431,27 @@ ${promotionPlan.replace(/<[^>]*>/g, '')}`;
         }, 3000);
     }
     
-    // 保存项目到本地存储
-    function saveProjects() {
-        localStorage.setItem('charityProjects', JSON.stringify(projects));
+    // 保存项目到Supabase（不再使用本地存储）
+    async function saveProjects() {
+        // 不再需要本地存储，数据直接从Supabase获取
+        console.log('数据已保存到Supabase');
     }
     
-    // 从 Supabase 或本地存储加载项目
+    // 从Supabase加载项目（不再从本地缓存读取）
     async function loadProjects() {
         try {
-            // 等待supabase客户端初始化完成
-             let attempts = 0;
-             while (!window.supabaseClient && attempts < 50) { // 限制尝试次数以避免无限循环
-                 await new Promise(resolve => setTimeout(resolve, 100));
-                 attempts++;
-             }
-             
-             if (!window.supabaseClient) {
-                 console.error('Supabase client not initialized after waiting');
-                 throw new Error('Supabase client not initialized');
-             }
-            
-            // 尝试从 Supabase 加载项目，明确指定要获取projectplan字段
-            const { data, error } = await window.supabaseClient
-                .from('projects')
-                .select('id, name, interests, cause, targetAudience, description, projectplan, createdAt, donations')
-                .order('createdAt', { ascending: false });
-            
-            if (error) {
-                throw error;
-            }
-            
-            const supabaseProjects = data || [];
-            
-            if (supabaseProjects && supabaseProjects.length > 0) {
-                projects = supabaseProjects;
-                // 同步到本地存储
-                saveProjects();
-                console.log('Projects loaded from Supabase');
-                return;
+            const result = await loadProjectsFromSupabase();
+            if (result.success) {
+                projects = result.data;
+                console.log('从Supabase成功加载 ' + projects.length + ' 个项目');
+            } else {
+                console.error('从Supabase加载项目失败:', result.error);
+                // 如果Supabase加载失败，使用空数组
+                projects = [];
             }
         } catch (error) {
-            console.log('Failed to load projects from Supabase:', error.message);
-        }
-        
-        // 如果 Supabase 加载失败或没有项目，则从本地存储加载
-        const savedProjects = localStorage.getItem('charityProjects');
-        if (savedProjects) {
-            projects = JSON.parse(savedProjects);
-            console.log('Projects loaded from localStorage');
+            console.error('加载项目时出错:', error);
+            projects = [];
         }
     }
 </script>

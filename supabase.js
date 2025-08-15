@@ -34,8 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
         schema: 'public'
       }
     });
-    // 将客户端附加到window对象，以便在其他文件中访问
-    window.supabaseClient = supabase;
   } else {
     console.error('Supabase library not loaded');
   }
@@ -55,20 +53,9 @@ async function saveProject(projectData) {
   try {
     // 假设您的数据库中有一个名为 'projects' 的表
     // 请确保表结构与 projectData 对象的属性匹配
-    // 明确指定要插入的字段，包括projectplan
     const { data, error } = await supabase
       .from('projects')
-      .insert([{
-        id: projectData.id,
-        name: projectData.name,
-        interests: projectData.interests,
-        cause: projectData.cause,
-        targetAudience: projectData.targetAudience,
-        description: projectData.description,
-        projectplan: projectData.projectplan,
-        createdAt: projectData.createdAt,
-        donations: projectData.donations || 0
-      }])
+      .insert([projectData])
       .select();
 
     if (error) {
@@ -90,7 +77,7 @@ async function saveProject(projectData) {
 
 /**
  * 从 Supabase 数据库加载项目
- * @returns {Promise<Array>} 项目数组
+ * @returns {Promise<Object>} 加载结果
  */
 async function loadProjectsFromSupabase() {
   // 等待supabase客户端初始化完成
@@ -99,20 +86,21 @@ async function loadProjectsFromSupabase() {
   }
   
   try {
-    // 从 'projects' 表中选择所有项目，明确指定要获取projectplan字段
+    // 从 'projects' 表中获取所有项目
     const { data, error } = await supabase
       .from('projects')
-      .select('id, name, interests, cause, targetAudience, description, projectplan, createdAt, donations');
+      .select('*')
+      .order('createdAt', { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    console.log('从Supabase加载项目:', data);
-    return data || [];
+    console.log('从Supabase成功加载项目:', data);
+    return { success: true, data };
   } catch (error) {
     console.error('从Supabase加载项目时出错:', error);
-    return [];
+    return { success: false, error: error.message };
   }
 }
 
