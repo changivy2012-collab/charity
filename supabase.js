@@ -55,9 +55,20 @@ async function saveProject(projectData) {
   try {
     // 假设您的数据库中有一个名为 'projects' 的表
     // 请确保表结构与 projectData 对象的属性匹配
+    // 明确指定要插入的字段，包括projectplan
     const { data, error } = await supabase
       .from('projects')
-      .insert([projectData])
+      .insert([{
+        id: projectData.id,
+        name: projectData.name,
+        interests: projectData.interests,
+        cause: projectData.cause,
+        targetAudience: projectData.targetAudience,
+        description: projectData.description,
+        projectplan: projectData.projectplan,
+        createdAt: projectData.createdAt,
+        donations: projectData.donations || 0
+      }])
       .select();
 
     if (error) {
@@ -78,7 +89,7 @@ async function saveProject(projectData) {
 }
 
 /**
- * 从 Supabase 数据库加载所有项目
+ * 从 Supabase 数据库加载项目
  * @returns {Promise<Array>} 项目数组
  */
 async function loadProjectsFromSupabase() {
@@ -88,20 +99,19 @@ async function loadProjectsFromSupabase() {
   }
   
   try {
-    // 从 'projects' 表中获取所有项目
+    // 从 'projects' 表中选择所有项目，明确指定要获取projectplan字段
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
-      .order('createdAt', { ascending: false });
+      .select('id, name, interests, cause, targetAudience, description, projectplan, createdAt, donations');
 
     if (error) {
       throw error;
     }
 
-    console.log('项目加载成功:', data);
+    console.log('从Supabase加载项目:', data);
     return data || [];
   } catch (error) {
-    console.error('加载项目时出错:', error);
+    console.error('从Supabase加载项目时出错:', error);
     return [];
   }
 }

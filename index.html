@@ -1579,10 +1579,10 @@ ${promotionPlan.replace(/<[^>]*>/g, '')}`;
                  throw new Error('Supabase client not initialized');
              }
             
-            // 尝试从 Supabase 加载项目
+            // 尝试从 Supabase 加载项目，明确指定要获取projectplan字段
             const { data, error } = await window.supabaseClient
                 .from('projects')
-                .select('*')
+                .select('id, name, interests, cause, targetAudience, description, projectplan, createdAt, donations')
                 .order('createdAt', { ascending: false });
             
             if (error) {
